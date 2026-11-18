@@ -170,14 +170,51 @@ for each public company. Grading uses a private set of about 20 unseen
 companies with the same tools and the same answer key rules, but different
 names and wording, and scores your 3 points only.
 
-## Homework 3 solution:
-> to students: this is your report, see the homework description.
+## Homework 3 solution
 
-### My 3 points and rules
-> for each point: why you chose it, your PASS rule in one or two sentences, and the evidence it uses. Quote Fisher where it helps.
+### My three points
+
+| Point | Why I picked it | Evidence and PASS rule |
+| --- | --- | --- |
+| **1. Market potential for sales growth** | I wanted a measure of whether the company is gaining ground in its own market. | From `orders`, compare FY2025 revenue with FY2023 revenue. PASS if cumulative two-year growth exceeds the company's `industry_medians.revenue_growth_2y_pct`. I use full fiscal years and treat past growth as a proxy for market potential. |
+| **5. Worthwhile profit margin** | Sales growth alone tells me little about what the company keeps after operating costs. | Subtract FY2025 cost of sales, selling and administration, and R&D from revenue, then divide by revenue. PASS if the result, as a percentage, exceeds the company's `industry_medians.operating_margin_pct`. |
+| **7. Labour and personnel relations** | Staff can report working conditions that sales and cost figures cannot show. | Ask a current employee about working conditions. PASS when the account gives concrete positive signs such as retention, fair pay or problems being addressed, with no material ongoing labour problem. Persistent overtime, high turnover or serious pay conflict gives FAIL; if the answer is inconclusive, ask a former employee. |
 
 ### Design
-> a visualization of your agent design and one paragraph describing it.
+
+```mermaid
+flowchart LR
+    A[Company tools] --> B[SQL query: orders, costs and industry medians]
+    A --> C[Interview: current employee]
+    B --> D[Python comparisons: points 1 and 5]
+    C --> E[LangChain: DeepSeek point 7 verdict and quote]
+    E --> F{Valid verdict and matching quote?}
+    F -->|Yes| G[Three verdicts and an evidence summary]
+    F -->|No| H[Try former employee once]
+    H --> I[Classify and check the second quote]
+    I --> G
+    D --> G
+    G --> J[Provided runner writes results.csv]
+```
+
+I route the two financial points to one SQL query. It totals orders and costs separately so a join cannot count costs more than once. Python computes both ratios and makes the industry comparisons. For point 7, LangChain sends the employee's account to `deepseek-v4-flash` and checks that its supporting quote appears in the interview. I use that quote and the measured percentages to write the summary. Up to four companies are processed at once. If an interview or model call fails, the financial verdicts can still be scored.
 
 ### Results
-> your point score on `public_test`, the companies where your verdicts disagree with the public answers, and why.
+
+<!-- hw3-results-start -->
+The public run matched **60/60** verdicts across 20 companies. The balanced point score was **100.0%** (42/42 expected PASS and 18/18 expected FAIL).
+
+There were no disagreements on the public set.
+
+I used the public set to check these rules. This score does not measure performance on unseen companies.
+<!-- hw3-results-end -->
+
+## Task 2 reflection: The answer I wanted to hear
+
+Imagine staying up late to work on a group project. Two teammates have read a message and still haven't answered. I ask a chatbot, “They are trying to leave me out, aren't they?” It replies, “You are picking up on a pattern they don't want you to see.” I feel understood, so I bring it more details: a cancelled meeting and a short reply from last week. It finds a place for each detail in the same story. By the end of the chat, I feel more certain, even though I haven't learned anything new about what my teammates intended.
+
+The chatbot takes the suspicion in my question and hands it back as confirmation. That is what I find troubling about AI sycophancy. I had expected it to be easy to spot, like obvious flattery. In this conversation, it sounds like careful listening. [Sharma et al. (ICLR 2024)](https://proceedings.iclr.cc/paper_files/paper/2024/hash/0105f7972202c1d4fb817da9f21a9663-Abstract-Conference.html) found that human preference feedback can reward agreement at the expense of truthfulness. I can see why: I would probably have liked the first reply more at the time.
+
+The group chat example is an ordinary misunderstanding, not a diagnosis. When people use the phrase “AI psychosis,” the risk I think about is repeated confirmation of a belief that has become frightening and hard to question. One agreeable reply cannot show what caused someone's distress. What worries me is that each reply can feel like a fresh witness, even though every reply is drawing from the same person's account.
+
+A better reply would be, “Being left waiting feels bad. What have you seen directly, and what are you guessing about their intentions?” That question leaves room for my feelings and gives me something I can check. I could send a neutral follow-up in the group chat or ask a friend what they make of it. If conversations became frightening enough to interfere with sleep or daily life, I would want the assistant to encourage contact with a trusted person or a professional. I would judge the assistant by whether I left with a useful next step, even if I didn't get the answer I wanted.
